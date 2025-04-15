@@ -26,6 +26,11 @@ def isIncident {P : Plane α} (p : Point α) (l : Line α) : Prop :=
 
 infix:50 " ∈ " => isIncident
 
+def isNotIncident {P : Plane α} (p : Point α) (l : Line α) : Prop :=
+  ¬(incident p l)
+
+infix:50 " ∉ " => isIncident
+
 def intersect {P : Plane α} (l m : Line α) : Prop :=
   ∃ p : Point α, p ∈ l ∧ p ∈ m
 
@@ -60,6 +65,24 @@ class OrderedPlane (α : Type) extends Plane α where
 def isBetween {P : OrderedPlane α} (a b c : Point α) : Prop :=
   P.between a b c
 
+structure SemiPlane (α : Type) (P : OrderedPlane α) where
+  boundary        : Line α
+  representative  : Point α 
+  not_on_boundary : ¬(representative ∈ boundary)
+
+-- Function to determine if a point is in a semi-plane
+def inSemiPlane {α : Type} {P : OrderedPlane α} (sp : SemiPlane α P) (p : Point α) : Prop :=
+  -- Either the point is the representative point
+  p = sp.representative ∨
+  -- Or the point and representative are on the same side of the boundary line
+  -- This means that any line through p and the representative does not intersect the boundary
+  (∀ l : Line α, p ∈ l → sp.representative ∈ l → ¬(intersect l sp.boundary)) ∨
+  -- Or they're on a line that intersects the boundary at exactly one point,
+  -- and the boundary point is between them (which means they're on the same side)
+  (∃ l : Line α, p ∈ l ∧ sp.representative ∈ l ∧ 
+    (∃! b : Point α, b ∈ l ∧ b ∈ sp.boundary ∧
+      (isBetween p b sp.representative ∨ isBetween sp.representative b p)))
+
 class OrderAxioms (P : OrderedPlane α) where
   -- Axiom II₁: Given three distinct points on a line, exactly one is between the other two
   axiom_II₁ : ∀ (a b c : Point α) (l : Line α), 
@@ -69,7 +92,13 @@ class OrderAxioms (P : OrderedPlane α) where
     (isBetween a c b ∧ ¬isBetween c a b ∧ ¬isBetween a b c) ∨
     (isBetween b a c ∧ ¬isBetween a b c ∧ ¬isBetween b c a)
 
+  -- Axiom II₂ : Given two distinct points, exists a least one point in between them
   axiom_II₂ : ∀ (a b : Point α), a ≠ b → ∃ (c : Point α), isBetween a c b
+
+  -- Axiom II₃ : A line determines exactly two distinct semi-planes
+  axiom_II₃ : ∀ (l : Line α), ∃ (sp₁ sp₂ : SemiPlane α P), 
+    (sp₁.boundary = l) ∧ (sp₂.boundary = l) ∧ 
+    (∀ p : Point α, p ∉ l → (inSemiPlane sp₁ p ↔ ¬inSemiPlane sp₂ p))
 
 def Segment (P : Plane α) := { pair : Point α × Point α // pair.1 ≠ pair.2 }
 
