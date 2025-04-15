@@ -1,7 +1,7 @@
 import Mathlib.Logic.ExistsUnique
 import Mathlib.Tactic.Push
 
-namespace EuclidianGeometry
+namespace EuclideanGeometry
 
 class Plane (α : Type) where
   Point : Type
@@ -21,21 +21,21 @@ class Plane (α : Type) where
 
 open Plane
 
-def isIncident {P : Plane α} (p : Point α) (l : Line α) : Prop :=
+def isIncident {α : Type} {P : Plane α} (p : Point α) (l : Line α) : Prop :=
   incident p l
 
 infix:50 " ∈ " => isIncident
 
-def isNotIncident {P : Plane α} (p : Point α) (l : Line α) : Prop :=
+def isNotIncident {α : Type} {P : Plane α} (p : Point α) (l : Line α) : Prop :=
   ¬(incident p l)
 
 infix:50 " ∉ " => isIncident
 
-def intersect {P : Plane α} (l m : Line α) : Prop :=
+def intersect {α : Type} {P : Plane α} (l m : Line α) : Prop :=
   ∃ p : Point α, p ∈ l ∧ p ∈ m
 
 -- Proposition 1.1: Two distinct lines either don't intersect or intersect at exactly one point
-theorem prop_1_1 {P : Plane α}
+theorem prop_1_1 {α : Type} {P : Plane α}
     (l m : Line α) (h : l ≠ m) : 
     (¬intersect l m) ∨ (∃! p : Point α, p ∈ l ∧ p ∈ m) := by
     by_cases h_int : intersect l m
@@ -62,7 +62,7 @@ class OrderedPlane (α : Type) extends Plane α where
   between : Point → Point → Point → Prop
 
 -- Shorthand notation for betweenness
-def isBetween {P : OrderedPlane α} (a b c : Point α) : Prop :=
+def isBetween {α : Type} {P : OrderedPlane α} (a b c : Point α) : Prop :=
   P.between a b c
 
 structure SemiPlane (α : Type) (P : OrderedPlane α) where
@@ -90,7 +90,7 @@ def notInSemiPlane {α : Type} {P : OrderedPlane α} (p : Point α) (sp : SemiPl
 
 infix:50 " ∉ " => notInSemiPlane
 
-class OrderAxioms (P : OrderedPlane α) where
+class OrderAxioms {α : Type} (P : OrderedPlane α) where
   -- Axiom II₁: Given three distinct points on a line, exactly one is between the other two
   axiom_II₁ : ∀ (a b c : Point α) (l : Line α), 
     a ≠ b ∧ b ≠ c ∧ a ≠ c → 
@@ -107,19 +107,19 @@ class OrderAxioms (P : OrderedPlane α) where
     (sp₁.boundary = l) ∧ (sp₂.boundary = l) ∧
     (∀ p : Point α, p ∉ l → (p ∈ sp₁ ↔ p ∉ sp₂))
 
-def Segment (P : Plane α) := { pair : Point α × Point α // pair.1 ≠ pair.2 }
+def Segment {α : Type} (P : Plane α) := { pair : Point α × Point α // pair.1 ≠ pair.2 }
 
-def mkSegment {P : Plane α} (a b : Point α) (h : a ≠ b) : Segment P :=
+def mkSegment {α : Type} {P : Plane α} (a b : Point α) (h : a ≠ b) : Segment P :=
   ⟨(a, b), h⟩
 
-def endpoints {P : Plane α} (s : Segment P) : Point α × Point α := s.val
+def endpoints {α : Type} {P : Plane α} (s : Segment P) : Point α × Point α := s.val
 
-structure Ray (P : OrderedPlane α) where
+structure Ray {α : Type} (P : OrderedPlane α) where
   origin    : Point α
   direction : Point α
   distinct  : origin ≠ direction
 
-def pointOnRay {P : OrderedPlane α} (r : Ray P) (p : Point α) : Prop :=
+def pointOnRay {α : Type} {P : OrderedPlane α} (r : Ray P) (p : Point α) : Prop :=
   -- First condition: the point must be collinear with the ray's defining points
   (∃ l : Line α, r.origin ∈ l ∧ r.direction ∈ l ∧ p ∈ l) ∧
   -- Second condition: the point must be on the same side of the origin as the direction
@@ -129,4 +129,4 @@ def pointOnRay {P : OrderedPlane α} (r : Ray P) (p : Point α) : Prop :=
    -- Or direction is between origin and p
    (isBetween r.origin r.direction p))
 
-end EuclidianGeometry
+end EuclideanGeometry
