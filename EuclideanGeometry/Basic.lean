@@ -71,7 +71,7 @@ structure SemiPlane (α : Type) (P : OrderedPlane α) where
   not_on_boundary : ¬(representative ∈ boundary)
 
 -- Function to determine if a point is in a semi-plane
-def inSemiPlane {α : Type} {P : OrderedPlane α} (sp : SemiPlane α P) (p : Point α) : Prop :=
+def inSemiPlane {α : Type} {P : OrderedPlane α} (p : Point α) (sp : SemiPlane α P) : Prop :=
   -- Either the point is the representative point
   p = sp.representative ∨
   -- Or the point and representative are on the same side of the boundary line
@@ -82,6 +82,13 @@ def inSemiPlane {α : Type} {P : OrderedPlane α} (sp : SemiPlane α P) (p : Poi
   (∃ l : Line α, p ∈ l ∧ sp.representative ∈ l ∧ 
     (∃! b : Point α, b ∈ l ∧ b ∈ sp.boundary ∧
       (isBetween p b sp.representative ∨ isBetween sp.representative b p)))
+
+infix:50 " ∈ " => inSemiPlane
+
+def notInSemiPlane {α : Type} {P : OrderedPlane α} (p : Point α) (sp : SemiPlane α P) : Prop := 
+  ¬(inSemiPlane p sp)
+
+infix:50 " ∉ " => notInSemiPlane
 
 class OrderAxioms (P : OrderedPlane α) where
   -- Axiom II₁: Given three distinct points on a line, exactly one is between the other two
@@ -97,8 +104,8 @@ class OrderAxioms (P : OrderedPlane α) where
 
   -- Axiom II₃ : A line determines exactly two distinct semi-planes
   axiom_II₃ : ∀ (l : Line α), ∃ (sp₁ sp₂ : SemiPlane α P), 
-    (sp₁.boundary = l) ∧ (sp₂.boundary = l) ∧ 
-    (∀ p : Point α, p ∉ l → (inSemiPlane sp₁ p ↔ ¬inSemiPlane sp₂ p))
+    (sp₁.boundary = l) ∧ (sp₂.boundary = l) ∧
+    (∀ p : Point α, p ∉ l → (p ∈ sp₁ ↔ p ∉ sp₂))
 
 def Segment (P : Plane α) := { pair : Point α × Point α // pair.1 ≠ pair.2 }
 
